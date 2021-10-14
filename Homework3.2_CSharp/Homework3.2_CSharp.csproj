@@ -55,6 +55,7 @@
     <Compile Include="MyPictureBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="MyRectangle.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
@@ -84,7 +85,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Content Include="Files\book2.txt">
+    <Content Include="Files\stopwords.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Files\book.txt">

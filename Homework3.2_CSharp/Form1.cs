@@ -15,14 +15,31 @@ namespace Homework3._2_CSharp
     {
         public IEnumerable<String> book;
         public Dictionary<String, int> words;
-        public List<String> blacklist;
+        public IEnumerable<String> blacklist;
+        public List<MyRectangle> rectangles;
+        Timer timer;
+        /*
+         * My Frequencies: Word appearing once or twice, word appearing three or four times, words appearing 5+ times.
+         */
+        public int distribution2 = 0;
+        public int distribution3_4 = 0;
+        public int distribution5 = 0;
         public Form1()
         {
             InitializeComponent();
             book = File.ReadLines(@"Files\book.txt");
+            blacklist = File.ReadLines(@"Files\stopwords.txt").ToList();
             words = new Dictionary<String, int>();
-            blacklist = new List<String>();
-            populateBlacklist();
+
+            timer = new Timer();
+            rectangles = new List<MyRectangle>();
+
+
+            myPictureBox1.Paint += new System.Windows.Forms.PaintEventHandler(this.myPictureBox1_Paint);
+            this.Controls.Add(this.myPictureBox1);
+
+            timer.Tick += new EventHandler(timer1_Tick);
+            timer.Interval = 50;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -32,7 +49,9 @@ namespace Homework3._2_CSharp
                 var ws = line.Split();
                 foreach(String word in ws)
                 {
-                    if (word.Length < 1 ) continue;
+                    //With this we filter out all the words that are less than 2 chars long and we discard numbers. Additionaly you
+                    // can use the populateBlacklist() function to populate the blacklist in order to discard specific words.
+                    if (word.Length < 2 || int.TryParse(word, out int n) || blacklist.Contains(word.ToLower())) continue;
                     if (!words.ContainsKey(word))
                         words.Add(word, 1);
                     else
@@ -40,33 +59,33 @@ namespace Homework3._2_CSharp
                 }
             }
             //LINQ to sort by value
+            //We discard any word that has only happeared once.
             var sortedDict = from entry in words where entry.Value > 1 orderby entry.Value descending select entry;
-            foreach(KeyValuePair<String,int> word in sortedDict.Take(10))
+            foreach(KeyValuePair<String,int> word in sortedDict)
             {
-                textBox1.AppendText(word.Key + " - word count: " + word.Value);
-                textBox1.AppendText(Environment.NewLine);
+                if (word.Value == 2) distribution2++;
+                if (word.Value == 3 || word.Value == 4) distribution3_4++;
+                if (word.Value >= 5 ) distribution5++;
             }
+
+            SolidBrush color = new SolidBrush(Color.FromArgb(255,0,0));
+            rectangles.Add(new MyRectangle(20, distribution2/3, label1.Location.X, myPictureBox1.Height, color, myPictureBox1));
+            rectangles.Add(new MyRectangle(20, distribution3_4/3, label2.Location.X, myPictureBox1.Height, color, myPictureBox1));
+            rectangles.Add(new MyRectangle(20, distribution5/3, label3.Location.X, myPictureBox1.Height, color, myPictureBox1));
+
+            timer.Start();
         }
 
-        public void populateBlacklist()
+        private void timer1_Tick(object sender, EventArgs e) { this.myPictureBox1.Refresh(); }
+
+        private void myPictureBox1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
         {
-            blacklist.Add("the");
-            blacklist.Add("and");
-            blacklist.Add("for");
-            blacklist.Add("not");
-            blacklist.Add("has");
-            blacklist.Add("are");
-            blacklist.Add("have");
-            blacklist.Add("that");
-            blacklist.Add("with");
-            blacklist.Add("but");
-            blacklist.Add("was");
-            blacklist.Add("were");
-            blacklist.Add("this");
-            blacklist.Add("from");
-            blacklist.Add("its");
-            blacklist.Add("his");
-            blacklist.Add("her");
+            Graphics g = e.Graphics;
+            foreach (MyRectangle rect in rectangles)
+            {
+                rect.Draw(g);
+                rect.Update();
+            }
         }
     }
 }
